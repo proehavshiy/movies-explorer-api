@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const mainRouter = require('./routes/index');
 
 const app = express();
 
@@ -21,6 +22,8 @@ mongoose.connect(`${DATABASE}/bitfilmsdb`, {
 app.use(bodyParser.json());
 // подключаем парсер кук как мидлвэр
 app.use(cookieParser());
+
+app.use(mainRouter);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
