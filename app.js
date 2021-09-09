@@ -13,8 +13,6 @@ const { DATABASE = 'mmongodb://localhost:27017' } = process.env;
 // подключаемся к серверу mongo
 mongoose.connect(`${DATABASE}/bitfilmsdb`, {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
   useUnifiedTopology: true,
 });
 
