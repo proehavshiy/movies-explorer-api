@@ -33,7 +33,7 @@ const userSchema = mongoose.Schema({
   },
 });
 
-userSchema.static.findUserByCredentials = function findUserByCredentials(email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   return this.findOne({ email }).select('+password') // здесь принудительно получаем пароль из базы
     .then((user) => {
       if (!user) {

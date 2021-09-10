@@ -6,10 +6,17 @@ const errorRouter = require('./error');
 
 const {
   registerUser,
+  loginUser,
+  logoutUser,
 } = require('../controllers/users');
 
-mainRouter.post('/signup', registerUser);
+const auth = require('../middlewares/auth');
 
+mainRouter.post('/signup', registerUser);
+mainRouter.post('/signin', loginUser);
+mainRouter.post('/signout', logoutUser);
+
+mainRouter.use(auth);
 mainRouter.use('/movies', moviesRouter);
 mainRouter.use('/users', usersRouter);
 // роут 404
