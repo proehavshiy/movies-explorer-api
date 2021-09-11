@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
+const UnauthorizedError = require('../middlewares/errors/UnautorizedError');
+
 function emailValidator(str) {
   return validator.isEmail(str, {
     allow_utf8_local_part: false,
@@ -13,11 +15,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    validate: {
-      validator(email) {
-        return validator.isEmail(email);
-      },
-    },
+    validate: emailValidator,
   },
   name: {
     type: String,
@@ -37,12 +35,12 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(email,
   return this.findOne({ email }).select('+password') // здесь принудительно получаем пароль из базы
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Нет такого юзера по емейлу *врем')); // ОСЛЕ ПЕРЕПИСАТЬ ЕРРОР
+        return Promise.reject(new UnauthorizedError('Некорректный емейл или пароль'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('пароль усюзера не тот *врем')); // ОСЛЕ ПЕРЕПИСАТЬ ЕРРОР
+            return Promise.reject(new UnauthorizedError('Некорректный емейл или пароль'));
           }
           return user;
         });

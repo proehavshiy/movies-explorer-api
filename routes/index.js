@@ -10,10 +10,15 @@ const {
   logoutUser,
 } = require('../controllers/users');
 
+const {
+  validateRequestOfRegister,
+  validateRequestOfLogin,
+} = require('../middlewares/requestValidation/validationOfUserRequest');
+
 const auth = require('../middlewares/auth');
 
-mainRouter.post('/signup', registerUser);
-mainRouter.post('/signin', loginUser);
+mainRouter.post('/signup', validateRequestOfRegister(), registerUser);
+mainRouter.post('/signin', validateRequestOfLogin(), loginUser);
 mainRouter.post('/signout', logoutUser);
 
 mainRouter.use(auth);

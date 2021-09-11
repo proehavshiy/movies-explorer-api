@@ -29,20 +29,12 @@ const movieSchema = mongoose.Schema({
   image: {
     type: String,
     required: true,
-    validate: {
-      validator(url) {
-        return validator.isURL(url); // ПРИВЕСТИ К ОБЩЕМУ ВИДУ/ ТЕСТИРУЕМ
-      },
-    },
+    validate: validateUrl,
   },
   trailer: {
     type: String,
     required: true,
-    validate: {
-      validator(url) {
-        return validateUrl(url); // ПРИВЕСТИ К ОБЩЕМУ ВИДУ/ ТЕСТИРУЕМ
-      },
-    },
+    validate: validateUrl,
   },
   thumbnail: {
     type: String,

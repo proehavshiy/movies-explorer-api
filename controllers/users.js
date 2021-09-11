@@ -38,6 +38,7 @@ function loginUser(req, res, next) {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
+      console.log('user:', user);
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key',
@@ -52,6 +53,7 @@ function loginUser(req, res, next) {
       });
     })
     .catch((error) => {
+      console.log('error:', error);
       if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
         next(new IncorrectDataError('Переданы некорректные данные.'));
       }

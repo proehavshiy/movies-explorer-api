@@ -5,7 +5,11 @@ const {
   updateUser,
 } = require('../controllers/users');
 
+const {
+  validateRequestOfUserUpdation,
+} = require('../middlewares/requestValidation/validationOfUserRequest');
+
 usersRouter.get('/me', getUser);
-usersRouter.patch('/me', updateUser);
+usersRouter.patch('/me', validateRequestOfUserUpdation(), updateUser);
 
 module.exports = usersRouter;

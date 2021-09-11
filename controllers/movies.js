@@ -33,6 +33,7 @@ function createMovie(req, res, next) {
     movieId,
     owner: _id,
   })
+    .orFail(new NotFoundError('Фильм или пользователь не найдены')) // отлавливаем ошибку с null значением
     .then((movie) => res.send(movie))
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
