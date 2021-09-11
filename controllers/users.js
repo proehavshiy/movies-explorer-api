@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const escapeHTML = require('escape-html');
 
 const User = require('../models/user');
 
@@ -14,8 +15,8 @@ function registerUser(req, res, next) {
 
   bcrypt.hash(password, 10)
     .then((hashed) => User.create({
-      name,
-      email,
+      name: escapeHTML(name),
+      email: escapeHTML(email),
       password: hashed,
     }))
     .then((user) => {
@@ -36,7 +37,7 @@ function registerUser(req, res, next) {
 
 function loginUser(req, res, next) {
   const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
+  User.findUserByCredentials(escapeHTML(email), escapeHTML(password))
     .then((user) => {
       console.log('user:', user);
       const token = jwt.sign(
@@ -90,8 +91,8 @@ function updateUser(req, res, next) {
   const { email, name } = req.body;
   User.findByIdAndUpdate(_id,
     {
-      email,
-      name,
+      email: escapeHTML(email),
+      name: escapeHTML(name),
     },
     {
       new: true,
