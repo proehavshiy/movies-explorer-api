@@ -19,9 +19,9 @@ const auth = require('../middlewares/auth');
 
 mainRouter.post('/signup', validateRequestOfRegister(), registerUser);
 mainRouter.post('/signin', validateRequestOfLogin(), loginUser);
-mainRouter.post('/signout', logoutUser);
 
 mainRouter.use(auth);
+mainRouter.post('/signout', logoutUser);
 mainRouter.use('/movies', moviesRouter);
 mainRouter.use('/users', usersRouter);
 // роут 404

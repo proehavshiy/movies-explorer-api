@@ -8,7 +8,14 @@ const NotFoundError = require('../middlewares/errors/NotFoundError');
 const ConflictError = require('../middlewares/errors/ConflictError');
 const IncorrectDataError = require('../middlewares/errors/IncorrectDataError');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const { JWT_SECRET } = require('../config/config');
+const {
+  USER_DUPLICATE_ERROR,
+  INCORRECT_DATA_ERROR,
+  NOT_FOUND_DATA_ERROR,
+  AUTHTOKEN_SENT,
+  LOGOUT,
+} = require('../config/responseMessages');
 
 function registerUser(req, res, next) {
   const { email, name, password } = req.body;
@@ -26,12 +33,13 @@ function registerUser(req, res, next) {
       });
     })
     .catch((error) => {
-      if (error.name === 'MongoError' && error.code === 11000) { // регистрация по уже существующему email
-        next(new ConflictError('Данный пользователь уже зарегистрирован'));
-      } else if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
-        next(new IncorrectDataError('Переданы некорректные данные.'));
+      if (error.code === 11000) { // регистрация по уже существующему email
+        return next(new ConflictError(USER_DUPLICATE_ERROR));
       }
-      next(error);
+      if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
+        return next(new IncorrectDataError(INCORRECT_DATA_ERROR));
+      }
+      return next(error);
     });
 }
 
@@ -39,10 +47,9 @@ function loginUser(req, res, next) {
   const { email, password } = req.body;
   User.findUserByCredentials(escapeHTML(email), escapeHTML(password))
     .then((user) => {
-      console.log('user:', user);
       const token = jwt.sign(
         { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key',
+        JWT_SECRET,
         { expiresIn: '7d' },
       );
       res.cookie('authToken', token, {
@@ -50,15 +57,14 @@ function loginUser(req, res, next) {
         httpOnly: true,
         sameSite: true,
       }).send({
-        message: 'authToken записан в cookie',
+        message: AUTHTOKEN_SENT,
       });
     })
     .catch((error) => {
-      console.log('error:', error);
       if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
-        next(new IncorrectDataError('Переданы некорректные данные.'));
+        return next(new IncorrectDataError(INCORRECT_DATA_ERROR));
       }
-      next(error);
+      return next(error);
     });
 }
 
@@ -66,23 +72,23 @@ function logoutUser(req, res, next) {
   res
     .clearCookie('authToken')
     .send({
-      message: 'Вы успешно разлогинены',
+      message: LOGOUT,
     });
-  next();
+  return next();
 }
 
 function getUser(req, res, next) {
   const { _id } = req.user;
   User.findById(_id)
-    .orFail(new NotFoundError('Фильм или пользователь не найдены')) // отлавливаем ошибку с null значением
+    .orFail(new NotFoundError(NOT_FOUND_DATA_ERROR)) // отлавливаем ошибку с null значением
     .then((user) => {
       res.send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
-        next(new IncorrectDataError('Переданы некорректные данные.'));
+        return next(new IncorrectDataError(INCORRECT_DATA_ERROR));
       }
-      next(error);
+      return next(error);
     });
 }
 
@@ -99,15 +105,18 @@ function updateUser(req, res, next) {
       runValidators: true,
       upsert: false,
     })
-    .orFail(new NotFoundError('Фильм или пользователь не найдены')) // отлавливаем ошибку с null значением
+    .orFail(new NotFoundError(NOT_FOUND_DATA_ERROR)) // отлавливаем ошибку с null значением
     .then((updatedUser) => {
       res.send(updatedUser);
     })
     .catch((error) => {
-      if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
-        next(new IncorrectDataError('Переданы некорректные данные.'));
+      if (error.code === 11000) { // регистрация по уже существующему email
+        return next(new ConflictError(USER_DUPLICATE_ERROR));
       }
-      next(error);
+      if (error.name === 'ValidationError' || error.name === 'CastError') { // ошибки валидации схемы
+        return next(new IncorrectDataError(INCORRECT_DATA_ERROR));
+      }
+      return next(error);
     });
 }
 

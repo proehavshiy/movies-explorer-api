@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 // express & mongo
 const express = require('express');
 const mongoose = require('mongoose');
@@ -10,35 +8,31 @@ const cookieParser = require('cookie-parser');
 
 // защита
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const { isCelebrateError } = require('celebrate');
+const limiter = require('./middlewares/limiter');
 const setCors = require('./middlewares/cors');
+
+// env
+const { PORT, DATABASE } = require('./config/config');
 
 // logger
 const { errorLogger, requestLogger } = require('./middlewares/logger/logger');
 
 // router
 const mainRouter = require('./routes/index');
-const IncorrectDataError = require('./middlewares/errors/IncorrectDataError');
 
-// ПОТОМ ВЫНЕТСИ ОТСЮДА
-const { PORT = 3000 } = process.env;
-const { DATABASE = 'mmongodb://localhost:27017' } = process.env;
+// error handlers
+const celebrateErrorHandler = require('./middlewares/errors/celebrateErrorHandler');
+const centralErrorHandler = require('./middlewares/errors/centralErrorHandler');
 
 // express & mongo
 const app = express();
-mongoose.connect(`${DATABASE}/bitfilmsdb`, {
+mongoose.connect(DATABASE, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-// лимитер запросов
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // за 15 минут
-  max: 100, // можно совершить максимум 100 запросов с одного IP
-});
-
 app.use(requestLogger);
+
 // security
 app.use(limiter);
 app.use(helmet());
@@ -54,24 +48,10 @@ app.use(mainRouter);
 app.use(errorLogger);
 
 // обработчик ошибок celebrate
-app.use((error, req, res, next) => {
-  console.log('celebrate:', error);
-  if (isCelebrateError(error)) {
-    next(new IncorrectDataError('Переданы некорректные данные.'));
-  } else {
-    next(error);
-  }
-});
+app.use(celebrateErrorHandler);
 
 // централизованный обработчик ошибок
-app.use((error, req, res, next) => {
-  console.log('central:', error);
-  const { statusCode = 500, message } = error;
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
-  });
-  return next();
-});
+app.use(centralErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

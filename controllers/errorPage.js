@@ -1,7 +1,8 @@
 const NotFoundError = require('../middlewares/errors/NotFoundError');
+const { NOT_FOUND_SOURCE_ERROR } = require('../config/responseMessages');
 
 function errorPage(req, res, next) {
-  next(new NotFoundError('Запрашиваемый ресурс не найден'));
+  return next(new NotFoundError(NOT_FOUND_SOURCE_ERROR));
 }
 
 module.exports = errorPage;
