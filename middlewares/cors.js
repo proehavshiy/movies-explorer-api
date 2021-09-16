@@ -1,6 +1,10 @@
 // Массив разешённых доменов
 const allowedCors = [
   'localhost:3000',
+  'filmsexplorer.nomoredomains.club',
+  'api.filmsexplorer.nomoredomains.club',
+  'https://filmsexplorer.nomoredomains.club',
+  'https://api.filmsexplorer.nomoredomains.club',
 ];
 const METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
 
